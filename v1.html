@@ -1,0 +1,275 @@
+<title>Safe Campus Module</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one 360px phone column, centred on larger screens; each screen is a step in a linear flow with a top progress bar. */
+:root{
+  --bg:#e9edf2; --phone:#ffffff; --ink:#14213a; --muted:#56627a; --line:#d5dce6;
+  --accent:#1f4fd1; --accent-ink:#ffffff; --warm:#e8771a; --soft:#eef2fb;
+  --safe:#127a4a; --safe-bg:#e3f5ec; --risk:#b3261e; --risk-bg:#fbe9e7;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c1220; --phone:#141c2e; --ink:#e6ebf5; --muted:#9aa6bd; --line:#2a3550;
+  --accent:#7ea2ff; --accent-ink:#0c1220; --warm:#f2a05a; --soft:#1b2540;
+  --safe:#5fd39a; --safe-bg:#15302a; --risk:#ff8a80; --risk-bg:#3a1c1e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1220; --phone:#141c2e; --ink:#e6ebf5; --muted:#9aa6bd; --line:#2a3550;
+  --accent:#7ea2ff; --accent-ink:#0c1220; --warm:#f2a05a; --soft:#1b2540;
+  --safe:#5fd39a; --safe-bg:#15302a; --risk:#ff8a80; --risk-bg:#3a1c1e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px}
+.phone{max-width:360px;margin:0 auto;background:var(--phone);border:1px solid var(--line);border-radius:28px;
+  overflow:hidden;box-shadow:0 18px 40px -24px rgba(20,33,58,.45);min-height:680px;display:flex;flex-direction:column}
+.bar{display:flex;align-items:center;gap:10px;padding:14px 18px 10px;border-bottom:1px solid var(--line)}
+.bar .brand{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.01em;flex:1}
+.bar .brand span{color:var(--warm)}
+.bar .step{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.progress{height:4px;background:var(--soft)}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .35s ease}
+main{flex:1;display:flex;flex-direction:column}
+section{display:flex;flex-direction:column;gap:14px;padding:20px 18px 18px;flex:1}
+h1,h2{font-family:var(--display);font-weight:800;line-height:1.12;margin:0;text-wrap:balance}
+h1{font-size:30px} h2{font-size:23px}
+p{margin:0} .muted{color:var(--muted)}
+.eyebrow{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--warm);font-weight:700}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;background:var(--soft);border-radius:999px;padding:4px 12px;width:fit-content}
+ul.tight{margin:0;padding-left:20px;display:grid;gap:6px}
+.rule{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--soft)}
+.rule b{display:block;font-family:var(--display);font-size:16px;margin-bottom:2px}
+.mono{font-family:var(--mono);font-size:13px;word-break:break-all}
+.spacer{flex:1}
+.actions{display:flex;gap:10px}
+button{font:inherit;cursor:pointer}
+.btn{flex:1;border:0;border-radius:14px;padding:14px 16px;font-weight:700;font-size:16px;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:focus-visible,.ctl:focus-visible,.choice:focus-visible{outline:3px solid var(--warm);outline-offset:2px}
+.trace{font-family:var(--mono);font-size:10.5px;color:var(--muted);text-align:right}
+/* phishing example */
+.mail{border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+.mail .hd{padding:10px 12px;background:var(--soft);display:grid;gap:2px}
+.mail .bd{padding:10px 12px;display:grid;gap:8px}
+mark{background:transparent;border-bottom:2px solid var(--risk);color:inherit;padding:0 1px}
+.sig{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start;font-size:15px}
+.sig i{font-style:normal;width:22px;height:22px;border-radius:50%;background:var(--risk-bg);color:var(--risk);font-size:12px;font-weight:700;display:grid;place-items:center;font-family:var(--mono)}
+/* video */
+.stage{position:relative;aspect-ratio:9/10;max-width:100%;border-radius:16px;background:var(--soft);overflow:hidden;display:grid;place-items:center}
+.scene{display:grid;place-items:center;gap:10px;text-align:center;padding:16px;animation:pop .5s ease both}
+@keyframes pop{from{opacity:.2;transform:translateY(8px)}to{opacity:1;transform:none}}
+.big{font-family:var(--display);font-weight:800;font-size:26px;line-height:1.1}
+.tag{font-family:var(--mono);font-size:13px;padding:4px 8px;border-radius:8px;background:var(--phone);border:1px solid var(--line)}
+.tag.bad{color:var(--risk);border-color:var(--risk)} .tag.good{color:var(--safe);border-color:var(--safe)}
+.caption{min-height:66px;background:#000c;color:#fff;border-radius:10px;padding:8px 10px;font-size:15px;line-height:1.35}
+.ctls{display:flex;align-items:center;gap:10px}
+.ctl{border:1.5px solid var(--line);background:var(--phone);color:var(--ink);border-radius:10px;padding:8px 12px;font-weight:700}
+.track{flex:1;height:6px;border-radius:6px;background:var(--soft);overflow:hidden}
+.track i{display:block;height:100%;width:0;background:var(--warm)}
+.time{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+/* infographic */
+.info{display:grid;gap:10px}
+.info .col{border-radius:14px;padding:12px 14px;border:1px solid var(--line)}
+.info .col h3{margin:0 0 6px;font-family:var(--display);font-size:17px;display:flex;gap:8px;align-items:center}
+.info .col h3 .n{font-family:var(--mono);font-size:12px;background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:1px 6px}
+/* inbox */
+.inbox{display:grid;gap:10px}
+.msg{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:8px}
+.msg .from{font-weight:700;font-size:14px}
+.msg .addr{font-family:var(--mono);font-size:11.5px;color:var(--muted);word-break:break-all}
+.msg .subj{font-weight:700}
+.msg .txt{font-size:14px;color:var(--muted)}
+.choices{display:flex;gap:8px}
+.choice{flex:1;border-radius:10px;padding:10px;font-weight:700;border:1.5px solid var(--line);background:var(--phone);color:var(--ink)}
+.choice.safe{border-color:var(--safe);color:var(--safe)} .choice.report{border-color:var(--risk);color:var(--risk)}
+.choice[disabled]{opacity:.55;cursor:default}
+.fb{border-radius:10px;padding:10px 12px;font-size:14px}
+.fb.ok{background:var(--safe-bg);color:var(--ink);border-left:4px solid var(--safe)}
+.fb.no{background:var(--risk-bg);color:var(--ink);border-left:4px solid var(--risk)}
+.fb b{display:block}
+.score{font-family:var(--display);font-size:44px;font-weight:800;line-height:1}
+.note{max-width:360px;margin:14px auto 0;font-size:12.5px;color:var(--muted);text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="phone" role="application" aria-label="Safe Campus digital security module">
+  <div class="bar"><div class="brand">Safe<span>Campus</span></div><div class="step" id="stepLabel">1 / 8</div></div>
+  <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+  <main id="app"></main>
+</div>
+<p class="note">Sprint 1 increment · v0.1 · Designed at 360 × 800 px. Quiz (PB-06), recommendations (PB-09) and help section (PB-10) are planned for Sprint 2.</p>
+
+<script>
+const app=document.getElementById('app');
+const startTime=Date.now();
+let idx=0, inboxDone={}, inboxScore=0, timer=null;
+
+const scenes=[
+ {d:9,v:`<div class="big">Meet Laura</div><span class="tag">18 · first semester · studies from her phone</span>`,c:"This is Laura. She is in her first semester and uses the virtual campus from her phone."},
+ {d:10,v:`<span class="tag bad">laura2008</span><span class="tag bad">laura2008</span><span class="tag bad">laura2008</span><div class="muted">email · campus · social media</div>`,c:"Like many students, she uses the same short password on every account."},
+ {d:9,v:`<div class="big" style="color:var(--risk)">1 leak = every account</div>`,c:"If one website leaks that password, attackers try it on all her other accounts."},
+ {d:10,v:`<span class="tag good">purple-river-climbs-at-7!</span><div class="muted">long passphrase · one account, one password</div>`,c:"The fix: a long passphrase, and a different password for her campus account."},
+ {d:10,v:`<div class="big">“Your account closes in 2 hours!”</div>`,c:"One morning, a message arrives. It looks official and it is very urgent."},
+ {d:10,v:`<span class="tag">✓ Sender</span><span class="tag">✓ Link</span><span class="tag">✓ Urgency</span>`,c:"Before tapping, Laura checks three things: who sent it, where the link really goes, and why it is so urgent."},
+ {d:9,v:`<span class="tag bad">ID number</span><span class="tag bad">photo of ID card</span><span class="tag bad">student code + password</span>`,c:"She also stops posting her ID number or document photos in open study groups."},
+ {d:9,v:`<div class="big">3 habits</div><div class="muted">Unique passphrase · Check before you click · Share data only through official channels</div>`,c:"Three habits keep her safe: a unique passphrase, check before you click, and share data only through official channels."}
+];
+const total=scenes.reduce((a,s)=>a+s.d,0);
+
+const msgs=[
+ {id:'m1',from:'Campus Help Desk',addr:'helpdesk@campus-example-edu.support-login.net',subj:'URGENT: your campus account will be suspended',txt:'We detected unusual activity. Confirm your username and password within 2 hours at http://campus-example-edu.support-login.net/verify or lose access.',answer:'report',
+  why:'Phishing. The domain only imitates the university (it ends in support-login.net), it creates a 2-hour deadline, and it asks for your password. Real help desks never ask for it.'},
+ {id:'m2',from:'Library Services',addr:'library@campus.example.edu',subj:'Reminder: your book is due on Friday',txt:'“Introduction to Networks” is due on Friday. You can renew it from the Library section of the campus portal. No action is needed if you already returned it.',answer:'safe',
+  why:'Safe. It comes from the official campus domain, there is no link to a login page, it asks for no data, and it tells you to use the portal you already know.'},
+ {id:'m3',from:'Scholarship Office',addr:'becas.premios2026@gmail.com',subj:'Congratulations! You won a $500 scholarship',txt:'To receive the payment today, reply with a photo of your ID card and your bank account number. Offer expires tonight.',answer:'report',
+  why:'Phishing. An official office does not use a free Gmail address, a prize you never applied for is a red flag, and it asks for your ID photo and bank details.'}
+];
+
+const screens=[
+ // PB-01
+ ()=>`<section>
+   <span class="eyebrow">Digital security · first-year students</span>
+   <h1>Stay safe on campus, online.</h1>
+   <p>Learn three habits that protect your accounts and your identity: strong passwords, spotting phishing, and protecting personal data.</p>
+   <span class="pill">⏱ About 8 minutes</span>
+   <div class="rule"><b>Learning objective</b>By the end, you will recognize the main signs of a phishing message and know how to protect your passwords and personal information.</div>
+   <div class="spacer"></div>
+   <div class="actions"><button class="btn" data-go="next">Start</button></div>
+   <div class="trace">PB-01 · Welcome screen</div></section>`,
+ // PB-02
+ ()=>`<section>
+   <span class="eyebrow">Topic 1 of 3</span>
+   <h2>Strong passwords</h2>
+   <p>Short passwords are guessed quickly, and one reused password opens every account if a single site is leaked.</p>
+   <div class="rule"><b>Use a passphrase</b>Join four or more random words with symbols or numbers.<div class="mono" style="margin-top:6px;color:var(--safe)">purple-river-climbs-at-7!</div></div>
+   <div class="rule"><b>One account, one password</b>Your campus account must have its own password. A password manager can remember the rest.</div>
+   <div class="spacer"></div>
+   <div class="actions"><button class="btn ghost" data-go="prev">Back</button><button class="btn" data-go="next">Next</button></div>
+   <div class="trace">PB-02 · Password safety · 88 words</div></section>`,
+ // PB-03
+ ()=>`<section>
+   <span class="eyebrow">Topic 2 of 3</span>
+   <h2>Spot a phishing message</h2>
+   <div class="mail" aria-label="Example of a phishing email">
+     <div class="hd"><span><b>From:</b> Campus Support &lt;<mark>support@campus-security-alert.com</mark>&gt;</span><span><b>Subject:</b> <mark>Act now</mark>: password expires today</span></div>
+     <div class="bd"><span>Your password expires in 1 hour. <mark>Enter your password</mark> here to keep it:</span><span class="mono" style="color:var(--accent)"><mark>http://bit.ly/campus-pass</mark></span></div>
+   </div>
+   <div class="sig"><i>1</i><span><b>Sender</b> – the address is not the official university domain.</span></div>
+   <div class="sig"><i>2</i><span><b>Link</b> – shortened or strange links hide the real website.</span></div>
+   <div class="sig"><i>3</i><span><b>Urgency</b> – pressure to act “now” is a trick.</span></div>
+   <div class="sig"><i>4</i><span><b>Request for data</b> – the university never asks for your password.</span></div>
+   <div class="actions"><button class="btn ghost" data-go="prev">Back</button><button class="btn" data-go="next">Next</button></div>
+   <div class="trace">PB-03 · Phishing signs · 92 words</div></section>`,
+ // PB-04
+ ()=>`<section>
+   <span class="eyebrow">Topic 3 of 3</span>
+   <h2>Protect your personal information</h2>
+   <p>These data let someone impersonate you. Do not post them in open chats or study groups:</p>
+   <ul class="tight"><li>ID number and photos of your ID card</li><li>Student code together with your password</li><li>Bank account or card numbers</li><li>Home address and phone number</li></ul>
+   <div class="rule"><b>Safe-sharing rule</b>If an office needs your data, send it only through the official campus portal or institutional email, never through a public group.</div>
+   <div class="spacer"></div>
+   <div class="actions"><button class="btn ghost" data-go="prev">Back</button><button class="btn" data-go="next">Next</button></div>
+   <div class="trace">PB-04 · Personal information · 79 words</div></section>`,
+ // PB-07 video
+ ()=>`<section>
+   <span class="eyebrow">Watch · ${Math.round(total)} seconds</span>
+   <h2>Laura's three habits</h2>
+   <div class="stage" id="stage" aria-live="off"></div>
+   <div class="caption" id="cap" aria-live="polite">Press Play to start. Captions are always on.</div>
+   <div class="ctls"><button class="ctl" id="play">▶ Play</button><div class="track"><i id="trk"></i></div><span class="time" id="tm">0:00 / ${fmt(total)}</span></div>
+   <div class="actions"><button class="btn ghost" data-go="prev">Back</button><button class="btn" data-go="next">Next</button></div>
+   <div class="trace">PB-07 · Captioned animation · no audio needed</div></section>`,
+ // PB-08 infographic
+ ()=>`<section>
+   <span class="eyebrow">Summary</span>
+   <h2>Three practices at a glance</h2>
+   <div class="info" role="img" aria-label="Infographic: 1 Passwords – use a passphrase, one password per account, use a password manager. 2 Phishing – check sender, link and urgency, report suspicious messages. 3 Personal data – never post ID or document photos in groups, share only through official channels.">
+     <div class="col"><h3><span class="n">1</span>Passwords</h3><ul class="tight"><li>Use a long passphrase</li><li>One account, one password</li><li>Let a password manager remember them</li></ul></div>
+     <div class="col"><h3><span class="n">2</span>Phishing</h3><ul class="tight"><li>Check sender, link and urgency</li><li>Never type your password from a link</li><li>Report, do not reply</li></ul></div>
+     <div class="col"><h3><span class="n">3</span>Personal data</h3><ul class="tight"><li>No ID photos in open groups</li><li>Share only through official channels</li></ul></div>
+   </div>
+   <div class="actions"><button class="btn ghost" data-go="prev">Back</button><button class="btn" data-go="next">Practice</button></div>
+   <div class="trace">PB-08 · Infographic with text alternative</div></section>`,
+ // PB-05 inbox
+ ()=>`<section>
+   <span class="eyebrow">Practice</span>
+   <h2>Your inbox</h2>
+   <p class="muted">Three new messages. Decide if each one is <b style="color:var(--safe)">Safe</b> or should be <b style="color:var(--risk)">Reported</b>.</p>
+   <div class="inbox">${msgs.map(m=>`<article class="msg" id="${m.id}">
+     <div><div class="from">${m.from}</div><div class="addr">${m.addr}</div></div>
+     <div class="subj">${m.subj}</div><div class="txt">${m.txt}</div>
+     <div class="choices"><button class="choice safe" data-m="${m.id}" data-a="safe">✓ Safe</button><button class="choice report" data-m="${m.id}" data-a="report">⚑ Report</button></div>
+     <div class="fbslot"></div></article>`).join('')}</div>
+   <div class="actions"><button class="btn ghost" data-go="prev">Back</button><button class="btn" data-go="next" id="finishInbox" disabled style="opacity:.5">See result</button></div>
+   <div class="trace">PB-05 · Simulated inbox · 2 phishing, 1 safe</div></section>`,
+ // end
+ ()=>{const s=Math.round((Date.now()-startTime)/1000);return `<section>
+   <span class="eyebrow">Sprint 1 part complete</span>
+   <h2>Well done!</h2>
+   <div><div class="score">${inboxScore} / 3</div><p class="muted">messages classified correctly</p></div>
+   <span class="pill">⏱ You finished in ${fmt(s)} (goal: 8:00 or less)</span>
+   <div class="rule"><b>Remember</b>Unique passphrase · Check before you click · Share data only through official channels.</div>
+   <p class="muted" style="font-size:14px">Coming in Sprint 2: a five-question knowledge check, a final recommendations screen and a help section with the official report channel.</p>
+   <div class="spacer"></div>
+   <div class="actions"><button class="btn ghost" data-go="restart">Start again</button></div>
+   <div class="trace">End of Sprint 1 flow · completion time recorded for PB-12</div></section>`}
+];
+
+function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+
+function render(){
+  stopVideo();
+  app.innerHTML=screens[idx]();
+  document.getElementById('stepLabel').textContent=(idx+1)+' / '+screens.length;
+  document.getElementById('prog').style.width=((idx+1)/screens.length*100)+'%';
+  app.scrollTop=0; window.scrollTo(0,0);
+  if(screens[idx]===screens[4]) setupVideo();
+  if(screens[idx]===screens[6]) restoreInbox();
+}
+
+app.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]');
+  if(g&&!g.disabled){const a=g.dataset.go;
+    if(a==='next')idx=Math.min(idx+1,screens.length-1);
+    else if(a==='prev')idx=Math.max(idx-1,0);
+    else {idx=0;inboxDone={};inboxScore=0}
+    render();return;}
+  const c=e.target.closest('.choice');
+  if(c&&!c.disabled) answer(c.dataset.m,c.dataset.a);
+});
+
+function answer(id,a){
+  if(inboxDone[id])return;
+  const m=msgs.find(x=>x.id===id); const ok=a===m.answer;
+  inboxDone[id]=a; if(ok)inboxScore++;
+  showFb(id);
+}
+function showFb(id){
+  const m=msgs.find(x=>x.id===id), a=inboxDone[id], ok=a===m.answer, el=document.getElementById(id);
+  el.querySelectorAll('.choice').forEach(b=>b.disabled=true);
+  el.querySelector('.fbslot').innerHTML=`<div class="fb ${ok?'ok':'no'}"><b>${ok?'Correct.':'Not quite.'}</b>${m.why}</div>`;
+  if(Object.keys(inboxDone).length===msgs.length){const f=document.getElementById('finishInbox');f.disabled=false;f.style.opacity=1}
+}
+function restoreInbox(){Object.keys(inboxDone).forEach(showFb)}
+
+/* captioned animation */
+let vt=0,playing=false;
+function setupVideo(){vt=0;playing=false;drawScene(0);
+  document.getElementById('play').onclick=()=>{ if(vt>=total){vt=0} playing?stopVideo():startVideo() };}
+function sceneAt(t){let acc=0;for(let i=0;i<scenes.length;i++){acc+=scenes[i].d;if(t<acc)return i}return scenes.length-1}
+let shown=-1;
+function drawScene(t){const i=sceneAt(t);
+  if(i!==shown||t===0){shown=i;const st=document.getElementById('stage');if(!st)return;
+    st.innerHTML=`<div class="scene">${scenes[i].v}</div>`;
+    if(t>0||playing)document.getElementById('cap').textContent=scenes[i].c;}
+  document.getElementById('trk').style.width=(t/total*100)+'%';
+  document.getElementById('tm').textContent=fmt(Math.floor(t))+' / '+fmt(total);}
+function startVideo(){playing=true;document.getElementById('play').textContent='❚❚ Pause';shown=-1;drawScene(vt);
+  timer=setInterval(()=>{vt+=0.25;if(vt>=total){vt=total;drawScene(vt-0.01);stopVideo();document.getElementById('play').textContent='↺ Replay';return}drawScene(vt)},250)}
+function stopVideo(){clearInterval(timer);timer=null;if(playing){playing=false;const p=document.getElementById('play');if(p)p.textContent='▶ Play'}}
+
+render();
+</script>

@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Safe Campus Module</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -91,20 +96,39 @@ mark{background:transparent;border-bottom:2px solid var(--risk);color:inherit;pa
 .fb.no{background:var(--risk-bg);color:var(--ink);border-left:4px solid var(--risk)}
 .fb b{display:block}
 .score{font-family:var(--display);font-size:44px;font-weight:800;line-height:1}
+/* quiz, results, help */
+.qtext{font-weight:700;font-size:17px}
+.qopts{display:grid;gap:8px}
+.qopt{text-align:left;border:1.5px solid var(--line);background:var(--phone);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:15px}
+.qopt.right{border-color:var(--safe);background:var(--safe-bg)}
+.qopt.wrong{border-color:var(--risk);background:var(--risk-bg)}
+.qopt[disabled]{cursor:default}
+.qopt:focus-visible{outline:3px solid var(--warm);outline-offset:2px}
+.quiz{display:grid;gap:12px}
+.results{display:flex;gap:24px}
+.sub{font-family:var(--display);font-size:18px;margin:4px 0 0}
+.reco{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;font-size:15px}
+.reco .n{width:28px;height:28px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--mono);font-weight:600}
+.links{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.links li{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:2px}
+.links a{color:var(--accent);font-weight:700}
+.links span{font-size:13px;color:var(--muted)}
 .note{max-width:360px;margin:14px auto 0;font-size:12.5px;color:var(--muted);text-align:center}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
+</head>
+<body>
 <div class="phone" role="application" aria-label="Safe Campus digital security module">
   <div class="bar"><div class="brand">Safe<span>Campus</span></div><div class="step" id="stepLabel">1 / 8</div></div>
   <div class="progress" aria-hidden="true"><i id="prog"></i></div>
   <main id="app"></main>
 </div>
-<p class="note">Sprint 1 increment · v0.1 · Designed at 360 × 800 px. Quiz (PB-06), recommendations (PB-09) and help section (PB-10) are planned for Sprint 2.</p>
+<p class="note">Sprint 2 increment · v0.2 · Designed at 360 × 800 px · Complete MVP flow (10 screens).</p>
 
 <script>
 const app=document.getElementById('app');
-const startTime=Date.now();
+let startTime=Date.now();
 let idx=0, inboxDone={}, inboxScore=0, timer=null;
 
 const scenes=[
@@ -203,20 +227,74 @@ const screens=[
      <div class="subj">${m.subj}</div><div class="txt">${m.txt}</div>
      <div class="choices"><button class="choice safe" data-m="${m.id}" data-a="safe">✓ Safe</button><button class="choice report" data-m="${m.id}" data-a="report">⚑ Report</button></div>
      <div class="fbslot"></div></article>`).join('')}</div>
-   <div class="actions"><button class="btn ghost" data-go="prev">Back</button><button class="btn" data-go="next" id="finishInbox" disabled style="opacity:.5">See result</button></div>
+   <div class="actions"><button class="btn ghost" data-go="prev">Back</button><button class="btn" data-go="next" id="finishInbox" disabled style="opacity:.5">Next: knowledge check</button></div>
    <div class="trace">PB-05 · Simulated inbox · 2 phishing, 1 safe</div></section>`,
- // end
- ()=>{const s=Math.round((Date.now()-startTime)/1000);return `<section>
-   <span class="eyebrow">Sprint 1 part complete</span>
-   <h2>Well done!</h2>
-   <div><div class="score">${inboxScore} / 3</div><p class="muted">messages classified correctly</p></div>
-   <span class="pill">⏱ You finished in ${fmt(s)} (goal: 8:00 or less)</span>
-   <div class="rule"><b>Remember</b>Unique passphrase · Check before you click · Share data only through official channels.</div>
-   <p class="muted" style="font-size:14px">Coming in Sprint 2: a five-question knowledge check, a final recommendations screen and a help section with the official report channel.</p>
+ // PB-06 quiz
+ ()=>`<section>
+   <span class="eyebrow">Knowledge check</span>
+   <h2>Five quick questions</h2>
+   <div id="quizBox" class="quiz" aria-live="polite"></div>
    <div class="spacer"></div>
-   <div class="actions"><button class="btn ghost" data-go="restart">Start again</button></div>
-   <div class="trace">End of Sprint 1 flow · completion time recorded for PB-12</div></section>`}
+   <div class="actions"><button class="btn ghost" data-go="prev">Back</button><button class="btn" data-go="next" id="finishQuiz" disabled style="opacity:.5">See my results</button></div>
+   <div class="trace">PB-06 · 5 questions · feedback after each answer</div></section>`,
+ // PB-09 recommendations
+ ()=>{const s=Math.round((Date.now()-startTime)/1000);const total=inboxScore+quizScore;return `<section>
+   <span class="eyebrow">Your results</span>
+   <h2>Well done!</h2>
+   <div class="results">
+     <div><div class="score">${inboxScore}/3</div><p class="muted">inbox messages</p></div>
+     <div><div class="score">${quizScore}/5</div><p class="muted">quiz answers</p></div>
+   </div>
+   <span class="pill">⏱ Finished in ${fmt(s)} (goal: 8:00 or less)</span>
+   <h3 class="sub">Your three actions for this week</h3>
+   <div class="reco"><span class="n">1</span><div><b>Change your campus password</b> to a long passphrase that you use nowhere else.</div></div>
+   <div class="reco"><span class="n">2</span><div><b>Before you tap a link,</b> check the sender, the real address and the urgency. Report anything suspicious.</div></div>
+   <div class="reco"><span class="n">3</span><div><b>Delete any ID photo or ID number</b> you posted in a group chat, and share data only through official channels.</div></div>
+   ${total<6?'<p class="muted" style="font-size:14px">Tip: go back to the topic screens and try the quiz again.</p>':''}
+   <div class="spacer"></div>
+   <div class="actions"><button class="btn ghost" data-go="restart">Start again</button><button class="btn" data-go="next">Help and resources</button></div>
+   <div class="trace">PB-09 · Final recommendations · one action per topic</div></section>`},
+ // PB-10 help
+ ()=>`<section>
+   <span class="eyebrow">Help and resources</span>
+   <h2>Need help or want to learn more?</h2>
+   <div class="rule"><b>Something happened to your account?</b>Change your password from a device you trust, then contact your university's IT help desk.<div class="mono" style="margin-top:6px">Report channel: [university IT help desk – to be confirmed by the institution]</div></div>
+   <ul class="links">
+     <li><a href="https://caivirtual.policia.gov.co/" target="_blank" rel="noopener">CAI Virtual – Policía Nacional de Colombia</a><span>Report a cybercrime in Colombia</span></li>
+     <li><a href="https://haveibeenpwned.com/" target="_blank" rel="noopener">Have I Been Pwned</a><span>Check if your email appeared in a data breach</span></li>
+     <li><a href="https://phishingquiz.withgoogle.com/" target="_blank" rel="noopener">Phishing Quiz (Google Jigsaw)</a><span>Practice spotting phishing messages</span></li>
+     <li><a href="https://www.cisa.gov/secure-our-world" target="_blank" rel="noopener">Secure Our World (CISA)</a><span>Simple tips to protect your accounts (in English)</span></li>
+   </ul>
+   <div class="spacer"></div>
+   <div class="actions"><button class="btn ghost" data-go="prev">Back</button><button class="btn" data-go="restart">Finish</button></div>
+   <div class="trace">PB-10 · Help and resources · links open in a new tab</div></section>`
 ];
+
+const quiz=[
+ {q:'Which password is the strongest?',o:['Laura2008!','P@ssw0rd','purple-river-climbs-at-7!','laura2008laura2008'],a:2,
+  why:'A long passphrase of random words is much harder to guess than a short word with a few symbols or a repeated name.'},
+ {q:'A shopping website you used was hacked. You used the same password there and on your campus account. What should you do?',o:['Nothing, the campus is a different site','Change the campus password to a new, different one','Change only the shopping password','Wait to see if something happens'],a:1,
+  why:'Attackers try leaked passwords on other sites. Every account needs its own password, so change any account that shared it.'},
+ {q:'Which link is the safest to sign in to your campus account?',o:['http://bit.ly/campus-login','https://campus-example-edu.login-verify.net','https://campus.example.edu/login','http://campus.example.edu.secure-access.co'],a:2,
+  why:'Read the address from the right: the real domain is the part just before the first single slash. Only campus.example.edu belongs to the university.'},
+ {q:'A message says: "Your account closes in 1 hour. Enter your password here." What do you do first?',o:['Enter the password quickly','Reply asking if it is real','Do not click; check the sender and report the message','Forward it to your classmates'],a:2,
+  why:'Urgency plus a request for your password are two classic phishing signs. Do not click, check the sender and report it.'},
+ {q:'In a study group chat, someone asks everyone for a photo of their ID card "to register the group". What do you do?',o:['Send it, everyone is doing it','Send only the front side','Do not send it; offices ask for data only through official channels','Send it and delete it later'],a:2,
+  why:'An ID photo is enough to impersonate you. Share personal data only through the official campus portal or institutional email.'}
+];
+let qIdx=0, qAns=[], quizScore=0;
+function renderQuiz(){
+  const box=document.getElementById('quizBox'); if(!box)return;
+  if(qIdx>=quiz.length){box.innerHTML=`<div class="rule"><b>Quiz complete</b>You answered ${quizScore} of 5 correctly.</div>`;
+    const f=document.getElementById('finishQuiz');f.disabled=false;f.style.opacity=1;return;}
+  const it=quiz[qIdx], ans=qAns[qIdx];
+  box.innerHTML=`<div class="qhead"><span class="mono">Question ${qIdx+1} of 5</span></div>
+   <p class="qtext">${it.q}</p>
+   <div class="qopts">${it.o.map((t,i)=>{let cls='qopt';if(ans!==undefined){if(i===it.a)cls+=' right';else if(i===ans)cls+=' wrong'}
+     return `<button class="${cls}" data-qo="${i}" ${ans!==undefined?'disabled':''}>${t}</button>`}).join('')}</div>
+   ${ans!==undefined?`<div class="fb ${ans===it.a?'ok':'no'}"><b>${ans===it.a?'Correct.':'Not quite.'}</b>${it.why}</div>
+   <button class="btn" data-qnext="1">${qIdx<quiz.length-1?'Next question':'Finish quiz'}</button>`:''}`;
+}
 
 function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 
@@ -228,6 +306,7 @@ function render(){
   app.scrollTop=0; window.scrollTo(0,0);
   if(screens[idx]===screens[4]) setupVideo();
   if(screens[idx]===screens[6]) restoreInbox();
+  if(screens[idx]===screens[7]) renderQuiz();
 }
 
 app.addEventListener('click',e=>{
@@ -235,8 +314,11 @@ app.addEventListener('click',e=>{
   if(g&&!g.disabled){const a=g.dataset.go;
     if(a==='next')idx=Math.min(idx+1,screens.length-1);
     else if(a==='prev')idx=Math.max(idx-1,0);
-    else {idx=0;inboxDone={};inboxScore=0}
+    else {idx=0;inboxDone={};inboxScore=0;qIdx=0;qAns=[];quizScore=0;startTime=Date.now()}
     render();return;}
+  const qo=e.target.closest('[data-qo]');
+  if(qo&&!qo.disabled&&qAns[qIdx]===undefined){const i=+qo.dataset.qo;qAns[qIdx]=i;if(i===quiz[qIdx].a)quizScore++;renderQuiz();return;}
+  if(e.target.closest('[data-qnext]')){qIdx++;renderQuiz();return;}
   const c=e.target.closest('.choice');
   if(c&&!c.disabled) answer(c.dataset.m,c.dataset.a);
 });
@@ -273,3 +355,5 @@ function stopVideo(){clearInterval(timer);timer=null;if(playing){playing=false;c
 
 render();
 </script>
+</body>
+</html>
